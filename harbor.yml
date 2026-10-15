@@ -1,6 +1,6 @@
 ---
-- name: Task 5 - Harbor Registry
-  hosts: webservers
+- name: Harbor Registry
+  hosts: web1
   become: true
 
   tasks:
