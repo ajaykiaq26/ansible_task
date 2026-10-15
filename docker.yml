@@ -1,6 +1,6 @@
 ---
 - name: Install Docker and Docker Compose
-  hosts: webservers
+  hosts: web1
   become: true
 
   tasks:
