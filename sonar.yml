@@ -1,6 +1,6 @@
 ---
 - name: SonarQube using Docker
-  hosts: webservers
+  hosts: web1
   become: true
 
   tasks:
