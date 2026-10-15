@@ -1,5 +1,5 @@
 ---
-- name: Task 6 - Install and configure HashiCorp Vault
+- name: Install and configure HashiCorp Vault
   hosts: web2
   become: true
 

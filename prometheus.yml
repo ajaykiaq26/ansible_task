@@ -1,0 +1,53 @@
+---
+- name: Install and configure Prometheus and Grafana
+  hosts: web2
+  become: yes
+
+  tasks:
+    - name: Update apt packages
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - prometheus
+          - apt-transport-https
+          - software-properties-common
+          - wget
+        state: present
+
+    - name: Start and enable Prometheus
+      service:
+        name: prometheus
+        state: started
+        enabled: yes
+
+    - name: Add Grafana GPG key
+      shell: |
+        mkdir -p /etc/apt/keyrings
+        wget -q -O /etc/apt/keyrings/grafana.asc https://apt.grafana.com/gpg.key
+        chmod 644 /etc/apt/keyrings/grafana.asc
+      args:
+        creates: /etc/apt/keyrings/grafana.asc
+
+    - name: Add Grafana repository
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/grafana.asc] https://apt.grafana.com stable main"
+        filename: grafana
+        state: present
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Grafana
+      apt:
+        name: grafana
+        state: present
+
+    - name: Start and enable Grafana
+      service:
+        name: grafana-server
+        state: started
+        enabled: yes
