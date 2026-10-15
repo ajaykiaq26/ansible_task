@@ -1,0 +1,26 @@
+---
+- name: Install and configure Nginx
+  hosts: webservers
+  become: yes
+
+  tasks:
+    - name: Update apt packages
+      apt:
+        update_cache: yes
+
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    - name: Start and enable Nginx
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+    - name: Create a welcome page
+      copy:
+        content: "<h1>Welcome to Nginx Server!</h1>"
+        dest: /var/www/html/index.html
+        mode: '0644'
