@@ -1,0 +1,73 @@
+---
+- name: Install and configure HashiCorp Vault
+  hosts: web2
+  become: true
+
+  tasks:
+    - name: Install required packages
+      ansible.builtin.apt:
+        name:
+          - curl
+          - gpg
+          - ca-certificates
+        state: present
+        update_cache: true
+
+    - name: Download HashiCorp GPG key
+      ansible.builtin.get_url:
+        url: https://apt.releases.hashicorp.com/gpg
+        dest: /tmp/hashicorp-gpg
+        mode: '0644'
+
+    - name: Convert GPG key to keyring
+      ansible.builtin.command:
+        cmd: gpg --dearmor --yes -o /usr/share/keyrings/hashicorp-archive-keyring.gpg /tmp/hashicorp-gpg
+      changed_when: true
+
+    - name: Add HashiCorp repository
+      ansible.builtin.apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com {{ ansible_distribution_release }} main"
+        filename: hashicorp
+        state: present
+
+    - name: Install Vault
+      ansible.builtin.apt:
+        name: vault
+        state: present
+        update_cache: true
+
+    - name: Configure Vault
+      ansible.builtin.copy:
+        dest: /etc/vault.d/vault.hcl
+        owner: vault
+        group: vault
+        mode: '0640'
+        content: |
+          ui = true
+
+          listener "tcp" {
+            address     = "0.0.0.0:8200"
+            tls_disable = true
+          }
+
+          storage "file" {
+            path = "/opt/vault/data"
+          }
+
+          disable_mlock = true
+
+    - name: Enable and start Vault
+      ansible.builtin.systemd:
+        name: vault
+        enabled: true
+        state: restarted
+
+    - name: Check Vault version
+      ansible.builtin.command: vault version
+      register: vault_version
+      changed_when: false
+
+    - name: Display Vault version
+      ansible.builtin.debug:
+        var: vault_version.stdout
+
