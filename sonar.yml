@@ -1,35 +1,23 @@
 ---
-- name: SonarQube using Docker
+- name: Install and Run SonarQube
   hosts: web1
   become: true
 
   tasks:
-    - name: Ensure Docker is running
+    - name: Start Docker service
       ansible.builtin.service:
         name: docker
         state: started
         enabled: true
 
-    - name: Create SonarQube directories
-      ansible.builtin.file:
-        path: "{{ item }}"
-        state: directory
-        owner: "1000"
-        group: "1000"
-        mode: "0755"
-      loop:
-        - /opt/sonarqube/data
-        - /opt/sonarqube/extensions
-        - /opt/sonarqube/logs
-
-    - name: Set Linux kernel parameter required by Elasticsearch
+    - name: Set Elasticsearch kernel parameter
       ansible.posix.sysctl:
         name: vm.max_map_count
         value: "524288"
         state: present
         reload: true
 
-    - name: Start SonarQube
+    - name: Run SonarQube container
       community.docker.docker_container:
         name: sonarqube
         image: sonarqube:lts-community
@@ -37,7 +25,3 @@
         restart_policy: unless-stopped
         published_ports:
           - "9000:9000"
-        volumes:
-          - /opt/sonarqube/data:/opt/sonarqube/data
-          - /opt/sonarqube/extensions:/opt/sonarqube/extensions
-          - /opt/sonarqube/logs:/opt/sonarqube/logs
